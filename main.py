@@ -186,7 +186,7 @@ async def eliminar_asistente(
         )
 
 # Endpoint para confirmar asistencia mediante QR
-@app.patch("/asistentes/confirmar/{qr_code}")
+@app.get("/asistentes/confirmar/{qr_code}")
 async def confirmar_asistencia(qr_code: str, db=Depends(get_db)):
     query = """
     UPDATE asistentes
