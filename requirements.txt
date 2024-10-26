@@ -3,4 +3,5 @@ uvicorn
 asyncpg
 python-dotenv
 gunicorn
+aiosmtplib
 qrcode[pil]
