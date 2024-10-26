@@ -17,7 +17,7 @@ EMAIL_USER = os.getenv("EMAIL_USER")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 EMAIL_SERVER = os.getenv("EMAIL_SERVER")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-NGROK_URL = "https://64a6-190-62-85-81.ngrok-free.app"
+
 
 def generar_qr_base64(email: str, evento_id: int) -> str:
     """
@@ -26,7 +26,7 @@ def generar_qr_base64(email: str, evento_id: int) -> str:
     """
     try:
         # Crear la URL que se codificará en el QR
-        qr_data = f"{NGROK_URL}/asistentes/confirmar/{email}-{evento_id}"
+        qr_data = f"https://api-parcial-web.onrender.com/asistentes/confirmar/{email}-{evento_id}"
 
         # Generar el código QR con los datos
         qr = qrcode.QRCode(
