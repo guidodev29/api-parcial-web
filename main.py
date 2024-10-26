@@ -95,39 +95,40 @@ async def eliminar_evento(evento_id: int, db=Depends(get_db)):
 
 # Endpoint para registrar asistentes y enviar QR por correo
 @app.post("/asistentes/")
-async def registrar_asistente(asistente: Asistente, db=Depends(get_db)):
-    # Verificar si el evento existe y obtener su nombre
-    query_evento = "SELECT nombre FROM eventos WHERE id = $1"
-    evento = await db.fetchrow(query_evento, asistente.evento_id)
+async def registrar_asistente(asistente: dict, db=Depends(get_db)):
+    """
+    Registra un asistente, genera un QR y lo envía por correo.
+    """
+    # Aquí generamos un QR a partir del email del asistente y el evento_id
+    qr_data = f"{asistente.email}"
+    
+    # Llamada correcta a `generar_qr_base64` con ambos parámetros
+    qr_base64 = generar_qr_base64(qr_data, asistente.evento_id)
 
-    if not evento:
-        raise HTTPException(status_code=404, detail="El evento no existe")
-
-    nombre_evento = evento["nombre"]
-
-    # Generar el contenido del QR y su representación en base64
-    qr_data = f"{asistente.email}-{asistente.evento_id}"
-    qr_base64 = generar_qr_base64(qr_data)
-
-    # Insertar al asistente en la base de datos
+    # Resto de la lógica de registro del asistente
     query = """
     INSERT INTO asistentes (nombre, email, evento_id, qr_code)
     VALUES ($1, $2, $3, $4) RETURNING *
     """
-    nuevo_asistente = await db.fetchrow(
-        query, asistente.nombre, asistente.email, asistente.evento_id, qr_data
-    )
+    asistente_registrado = await db.fetchrow(query, asistente.nombre, asistente.email, asistente.evento_id, f"{asistente.email}-{asistente.evento_id}")
 
-    # Enviar el correo HTML con el QR
+    if not asistente_registrado:
+        raise HTTPException(status_code=400, detail="No se pudo registrar al asistente")
+
+    # Obtener el nombre del evento para el correo
+    nombre_evento = await db.fetchval("SELECT nombre FROM eventos WHERE id = $1", asistente.evento_id)
+
+    # Enviar el correo con el QR
     await enviar_correo_html(
-        email=asistente.email,
-        nombre=asistente.nombre,
-        nombre_evento=nombre_evento,
-        evento_id=asistente.evento_id,
-        qr_base64=qr_base64
+        asistente.email,
+        asistente.nombre,
+        nombre_evento,
+        asistente.evento_id,
+        qr_base64
     )
 
-    return dict(nuevo_asistente)
+    return {"detail": "Registro exitoso, correo enviado."}
+
 
 # Endpoint para obtener todos los asistentes
 @app.get("/asistentes/", response_model=List[dict])
