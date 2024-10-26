@@ -95,7 +95,7 @@ async def eliminar_evento(evento_id: int, db=Depends(get_db)):
 
 # Endpoint para registrar asistentes y enviar QR por correo
 @app.post("/asistentes/")
-async def registrar_asistente(asistente: dict, db=Depends(get_db)):
+async def registrar_asistente(asistente: Asistente, db=Depends(get_db)):
     """
     Registra un asistente, genera un QR y lo envía por correo.
     """
